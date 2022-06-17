@@ -4,6 +4,8 @@ const User = require("../models/User.model");
 const bcrypt = require("bcrypt");
 const saltRounds = 10;
 
+const isLoggedIn = require("../middlewares");
+
 
 router.get("/signup", async (req, res, next) => {
     res.render("auth/signup");
@@ -11,7 +13,12 @@ router.get("/signup", async (req, res, next) => {
 
 router.get("/login", async (req, res, next) => {
     res.render("auth/login");
-})
+});
+
+router.get("/profile", isLoggedIn, (req, res, next) => {
+    const user = req.session.currentUser
+    res.render("auth/profile", user);
+});
 
 router.post("/signup", async (req, res, next) => {
     const {username, password} = req.body;
@@ -48,7 +55,7 @@ router.post("/login", async (req, res, next) => {
     } catch (error) {
         next(error);
     }
-})
+});
 
 router.post("/logout", (req, res, next) => {
     req.session.destroy((err) => {
@@ -58,7 +65,7 @@ router.post("/logout", (req, res, next) => {
             res.redirect("/auth/login")
         }
     });
-})
+});
 
 module.exports = router;
 
