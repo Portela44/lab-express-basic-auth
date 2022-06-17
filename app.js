@@ -15,6 +15,8 @@ const hbs = require('hbs');
 
 const app = express();
 
+
+
 // ℹ️ This function is getting exported from the config folder. It runs most middlewares
 require('./config')(app);
 
@@ -27,6 +29,27 @@ app.locals.title = `${capitalized(projectName)}- Generated with Ironlauncher`;
 // 👇 Start handling routes here
 const indexRouter = require('./routes/index');
 const userRouter = require("./routes/auth");
+const session = require("express-session");
+const MongoStore = require("connect-mongo");
+
+app.set("trust proxy", 1);
+app.use(
+    session({
+        name: "basic-auth",
+        secret: process.env.SESSION_SECRET,
+        resave:true,
+        saveUninitialized:false,
+        cookie:{
+            sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+            secure: process.env.NODE_ENV === "production",
+            httpOnly:true,
+            maxAge: 2592000000 //30 days,
+        },
+        store: MongoStore.create({
+            mongoUrl: process.env.MONGO_URL || "mongodb://localhost/lab-express-basic-auth"
+        })
+    })
+)
 
 app.use('/', indexRouter);
 app.use("/auth", userRouter);
